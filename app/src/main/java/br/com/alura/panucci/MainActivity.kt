@@ -14,6 +14,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import br.com.alura.panucci.sampledata.bottomAppBarItems
 import br.com.alura.panucci.sampledata.sampleProductWithImage
@@ -29,7 +31,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
 
+            //controlador criado default
             val navController = rememberNavController()
+            navController.navigate
 
             PanucciTheme {
                 Surface(
@@ -47,7 +51,19 @@ class MainActivity : ComponentActivity() {
                         },
                         onFabClick = {
                         }) {
-                        //TODO implementar o NAVHOST
+                        NavHost(
+                            navController = navController ,
+                            startDestination = "home",
+                        ){
+                            //a navegacao serao composables injetados
+                            //dentro do slot de content configurado no APP
+                            composable("home"){
+                                HighlightsListScreen(products = sampleProducts)
+                            }
+                            composable("menu"){
+                                MenuListScreen(products = sampleProducts)
+                            }
+                        }
                     }
                 }
             }
