@@ -31,62 +31,23 @@ class MainActivity : ComponentActivity() {
 
             val navController = rememberNavController()
 
-
-//CODIGO COMENTADO SIMULA O Navigation
-            // O NAVIGATION do jetpackcompose utiliza um sistema de navegação dos composables
-            //Basicamente não será necessario criar diversas activities para navegação do aplicativo
-            // O navigation da esse poder de navegar entre os composables e reduz essa necessidade.
-//            val initialScreen = "Destaques"
-//            val screens = remember {
-//                mutableStateListOf(initialScreen)
-//            }
-//            Log.i("MainActivity", "onCreate: screens ${screens.toList()}")
-            val currentScreen = ""
-//            val currentScreen = screens.last()
-//            BackHandler(screens.size > 1) {
-//                screens.removeLast()
-//            }
-
             PanucciTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var selectedItem by remember(currentScreen) {
-                        val item = bottomAppBarItems.find { currentScreen == it.label }
+                    var selectedItem by remember {
+                        val item = bottomAppBarItems.first()
                         mutableStateOf(item)
                     }
                     PanucciApp(
-                        bottomAppBarItemSelected = selectedItem ?: bottomAppBarItems.first(),
+                        bottomAppBarItemSelected = selectedItem,
                         onBottomAppBarItemSelectedChange = {
                             selectedItem = it
-//                            screens.add(it.label)
                         },
                         onFabClick = {
-//                            screens.add("Pedido")
                         }) {
                         //TODO implementar o NAVHOST
-//                        when (currentScreen) {
-//                            "Destaques" -> HighlightsListScreen(
-//                                products = sampleProducts,
-//                                onOrderClick = {
-////                                    screens.add("Pedido")
-//                                },
-//                                onProductClick = {
-////                                    screens.add("DetalhesProduto")
-//                                }
-//                            )
-//                            "Menu" -> MenuListScreen(
-//                                products = sampleProducts
-//                            )
-//                            "Bebidas" -> DrinksListScreen(
-//                                products = sampleProducts + sampleProducts
-//                            )
-//                            "DetalhesProduto" -> ProductDetailsScreen(
-//                                product = sampleProductWithImage
-//                            )
-//                            "Pedido" -> CheckoutScreen(products = sampleProducts)
-//                        }
                     }
                 }
             }
