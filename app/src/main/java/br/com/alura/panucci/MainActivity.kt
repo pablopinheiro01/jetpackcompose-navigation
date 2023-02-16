@@ -3,7 +3,6 @@ package br.com.alura.panucci
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,18 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.alura.panucci.sampledata.bottomAppBarItems
-import br.com.alura.panucci.sampledata.sampleProductWithImage
 import br.com.alura.panucci.sampledata.sampleProducts
 import br.com.alura.panucci.ui.components.BottomAppBarItem
 import br.com.alura.panucci.ui.components.PanucciBottomAppBar
 import br.com.alura.panucci.ui.screens.*
 import br.com.alura.panucci.ui.theme.PanucciTheme
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
@@ -35,6 +33,25 @@ class MainActivity : ComponentActivity() {
 
             //controlador criado default
             val navController = rememberNavController()
+
+            //para nao executar a cada recomposição
+            LaunchedEffect(Unit) {
+                //codigo para analisar a backstack do navigation
+                navController.addOnDestinationChangedListener(
+                    NavController.OnDestinationChangedListener { _, _, _ ->
+                        val routes = navController.backQueue.map {
+                            it.destination.route
+                        }
+                        Log.i("MainActivity", "backstack rotas $routes")
+
+                        //Exemplo de backstack que foi logada:
+                    //                        2023-02-16 20:40:17.184 20000-20000 MainActivity
+                    //                        br.com.alura.panucci
+                    //                        I  backstack rotas [null, highlight, highlight, menu, drinks, menu, highlight, menu, drinks, menu, highlight, menu, drinks, menu, highlight]
+
+                    })
+            }
+
             val backStackEntryState by navController.currentBackStackEntryAsState()
             val currentDestination = backStackEntryState?.destination
 
@@ -60,25 +77,27 @@ class MainActivity : ComponentActivity() {
                             selectedItem = it
                             //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
                             val route = it.route
-                            navController.navigate(route)
+                            navController.navigate(route){
+                                launchSingleTop = true //nao recarrega a tela
+                                popUpTo(route) // remove a screen da stack
+                            }
                         },
                         onFabClick = {
                         }) {
                         NavHost(
-                            navController = navController ,
-                            startDestination = "home",
-                        ){
+                            navController = navController,
+                            startDestination = "highlight",
+                        ) {
 
                             //a navegacao serao composables injetados
                             //dentro do slot de content configurado no APP
-                            composable("home"){
+                            composable("highlight") {
                                 HighlightsListScreen(products = sampleProducts)
-
                             }
-                            composable("menu"){
+                            composable("menu") {
                                 MenuListScreen(products = sampleProducts)
                             }
-                            composable("drinks"){
+                            composable("drinks") {
                                 DrinksListScreen(products = sampleProducts)
                             }
                         }
