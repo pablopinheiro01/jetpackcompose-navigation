@@ -24,6 +24,7 @@ import br.com.alura.panucci.ui.components.BottomAppBarItem
 import br.com.alura.panucci.ui.components.PanucciBottomAppBar
 import br.com.alura.panucci.ui.screens.*
 import br.com.alura.panucci.ui.theme.PanucciTheme
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
@@ -33,7 +34,11 @@ class MainActivity : ComponentActivity() {
 
             //controlador criado default
             val navController = rememberNavController()
-            navController.navigate
+
+//            LaunchedEffect(key1 = Unit ){
+//                delay(3000L)
+//                navController.navigate("menu")
+//            }
 
             PanucciTheme {
                 Surface(
@@ -55,10 +60,33 @@ class MainActivity : ComponentActivity() {
                             navController = navController ,
                             startDestination = "home",
                         ){
+
                             //a navegacao serao composables injetados
                             //dentro do slot de content configurado no APP
                             composable("home"){
                                 HighlightsListScreen(products = sampleProducts)
+
+                                /*
+                                Utilizamos o LaunchedEffect() para executar o código de navegação, pois é possível configurá-lo para executar apenas uma vez e evitar múltiplas execuções por conta da recomposição.
+                                 Entretanto, já utilizamos o remember para fazer essa mesma tarefa em outras situações, então porque não utilizarmos novamente?
+                                O remember é utilizado para realizar uma computação e devolver um valor que não seja Unit, ou seja, é possível utilizá-lo para fazer essa tarefa:
+
+                                composable("home") {
+                                    HighlightsListScreen(products = sampleProducts)
+                                    remember {
+                                        navController.navigate("menu")
+                                    }
+                                }
+                                O AS vai apresentar o seguinte warning: “remember calls must not return Unit”, ou seja,
+                                 remember não deve devolver Unit. Mesmo que rode e funcione, é considerado uma má prática, portanto, utilize as APIs de Effect para isso.
+                                 */
+
+                                //API que resolve os problemas relacionados a recomposição das telas
+                                LaunchedEffect(key1 = Unit ){
+                                    //executa uma unica vez e possui um escopo de Coroutine
+                                    navController.navigate("menu")
+                                }
+
                             }
                             composable("menu"){
                                 MenuListScreen(products = sampleProducts)
