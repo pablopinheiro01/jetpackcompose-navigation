@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.alura.panucci.sampledata.bottomAppBarItems
 import br.com.alura.panucci.sampledata.sampleProductWithImage
@@ -34,6 +35,8 @@ class MainActivity : ComponentActivity() {
 
             //controlador criado default
             val navController = rememberNavController()
+            val backStackEntryState by navController.currentBackStackEntryAsState()
+            val currentDestination = backStackEntryState?.destination
 
 
             PanucciTheme {
@@ -41,8 +44,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    var selectedItem by remember {
-                        val item = bottomAppBarItems.first()
+                    var selectedItem by remember(currentDestination) {
+
+                        val item = currentDestination?.let {
+                            bottomAppBarItems.find { destination ->
+                                it.route == destination.route
+                            }
+                        } ?: bottomAppBarItems.first()
+
                         mutableStateOf(item)
                     }
                     PanucciApp(
