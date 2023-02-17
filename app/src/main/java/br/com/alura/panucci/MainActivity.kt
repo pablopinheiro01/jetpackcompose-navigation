@@ -14,10 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import br.com.alura.panucci.navigation.AppDestination
 import br.com.alura.panucci.sampledata.bottomAppBarItems
 import br.com.alura.panucci.sampledata.sampleProducts
 import br.com.alura.panucci.ui.components.BottomAppBarItem
@@ -34,23 +36,7 @@ class MainActivity : ComponentActivity() {
             //controlador criado default
             val navController = rememberNavController()
 
-            //para nao executar a cada recomposição
-            LaunchedEffect(Unit) {
-                //codigo para analisar a backstack do navigation
-                navController.addOnDestinationChangedListener(
-                    NavController.OnDestinationChangedListener { _, _, _ ->
-                        val routes = navController.backQueue.map {
-                            it.destination.route
-                        }
-                        Log.i("MainActivity", "backstack rotas $routes")
-
-                        //Exemplo de backstack que foi logada:
-                    //                        2023-02-16 20:40:17.184 20000-20000 MainActivity
-                    //                        br.com.alura.panucci
-                    //                        I  backstack rotas [null, highlight, highlight, menu, drinks, menu, highlight, menu, drinks, menu, highlight, menu, drinks, menu, highlight]
-
-                    })
-            }
+            logBackStackNavigation(navController)
 
             val backStackEntryState by navController.currentBackStackEntryAsState()
             val currentDestination = backStackEntryState?.destination
@@ -64,8 +50,8 @@ class MainActivity : ComponentActivity() {
                     var selectedItem by remember(currentDestination) {
 
                         val item = currentDestination?.let {
-                            bottomAppBarItems.find { destination ->
-                                it.route == destination.route
+                            bottomAppBarItems.find { app ->
+                                it.route == app.destination.route
                             }
                         } ?: bottomAppBarItems.first()
 
@@ -76,34 +62,78 @@ class MainActivity : ComponentActivity() {
                         onBottomAppBarItemSelectedChange = {
                             selectedItem = it
                             //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
-                            val route = it.route
-                            navController.navigate(route){
+                            val route = it.destination.route
+                            navController.navigate(route) {
                                 launchSingleTop = true //nao recarrega a tela
                                 popUpTo(route) // remove a screen da stack
                             }
                         },
                         onFabClick = {
+                            navController.navigate(AppDestination.Checkout.route)
                         }) {
                         NavHost(
                             navController = navController,
-                            startDestination = "highlight",
+                            startDestination = AppDestination.HighLight.route,
                         ) {
 
                             //a navegacao serao composables injetados
                             //dentro do slot de content configurado no APP
-                            composable("highlight") {
-                                HighlightsListScreen(products = sampleProducts)
+                            composable(AppDestination.HighLight.route) {
+                                HighlightsListScreen(
+                                    products = sampleProducts,
+                                    onNavigateToCheckout = {
+                                        navController.navigate(AppDestination.Checkout.route)
+                                    },
+                                    onNavigateToDetails = {
+                                        navController.navigate(AppDestination.ProductDetails.route)
+                                    }
+                                )
                             }
-                            composable("menu") {
-                                MenuListScreen(products = sampleProducts)
+                            composable(AppDestination.Menu.route) {
+                                MenuListScreen(
+                                    products = sampleProducts,
+                                    onNavigateToDetails = {
+                                        navController.navigate(AppDestination.ProductDetails.route)
+                                    },
+
+                                    )
                             }
-                            composable("drinks") {
-                                DrinksListScreen(products = sampleProducts)
+                            composable(AppDestination.Drinks.route) {
+                                DrinksListScreen(
+                                    products = sampleProducts,
+                                    onNavigateToDetails = { navController.navigate(AppDestination.ProductDetails.route) },
+                                )
+                            }
+                            composable(AppDestination.ProductDetails.route) {
+                                ProductDetailsScreen(
+                                    product = sampleProducts.random(),
+                                    onNavigateToCheckout = {
+                                        navController.navigate(AppDestination.Checkout.route)
+                                    },
+                                )
+                            }
+                            composable(AppDestination.Checkout.route) {
+                                CheckoutScreen(products = sampleProducts)
                             }
                         }
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun logBackStackNavigation(navController: NavHostController) {
+        LaunchedEffect(Unit) {
+            //codigo para analisar a backstack do navigation
+            navController.addOnDestinationChangedListener(
+                NavController.OnDestinationChangedListener { _, _, _ ->
+                    val routes = navController.backQueue.map {
+                        it.destination.route
+                    }
+                    Log.i("MainActivity", "backstack rotas $routes")
+
+                })
         }
     }
 
