@@ -143,16 +143,19 @@ class MainActivity : ComponentActivity() {
                                     it.id == id
                                 }?.let { product ->
 
-                                    val discount = when(promoCode){
+                                    val discount = when (promoCode) {
                                         "ALURA" -> BigDecimal("0.1")
                                         else -> BigDecimal.ZERO
                                     }
                                     val currentPrice = product.price
 
                                     Log.i("MainActivity", "onCreate: product ${product} ")
-                                    Log.i("MainActivity", "onCreate: Calculo de desconto: ${currentPrice - (currentPrice*discount)} ")
+                                    Log.i(
+                                        "MainActivity",
+                                        "onCreate: Calculo de desconto: ${currentPrice - (currentPrice * discount)} "
+                                    )
                                     ProductDetailsScreen(
-                                        product = product.copy(price = currentPrice - (currentPrice*discount)),
+                                        product = product.copy(price = currentPrice - (currentPrice * discount)),
                                         onNavigateToCheckout = {
                                             navController.navigate(AppDestination.Checkout.route)
                                         },
@@ -160,15 +163,20 @@ class MainActivity : ComponentActivity() {
                                     //caso o dado procurado na fonte de verdade seja nulo ...
 //                                } ?: navController.popBackStack() //volta para a tela anterior
                                     //nao pode ser usado em composição
-                                } ?: LaunchedEffect(Unit){navController.navigateUp()} //volta para a tela anterior porem possui integração com  deeplink
+                                }
+                                    ?: LaunchedEffect(Unit) { navController.navigateUp() } //volta para a tela anterior porem possui integração com  deeplink
 
                             }
                             composable(AppDestination.Checkout.route) {
                                 CheckoutScreen(products = sampleProducts,
-                                onPopBackStack = {
-                                    navController.navigateUp()
-                                }
-                                    )
+                                    onPopBackStack = {
+                                        Log.i("MainActivity", "onCreate: onPopBackStack called")
+//                                        navController.navigateUp()
+                                        navController.navigate(AppDestination.HighLight.route){
+                                            popUpTo(AppDestination.Checkout.route)
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
