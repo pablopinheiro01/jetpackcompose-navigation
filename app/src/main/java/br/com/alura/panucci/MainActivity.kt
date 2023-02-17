@@ -157,11 +157,18 @@ class MainActivity : ComponentActivity() {
                                             navController.navigate(AppDestination.Checkout.route)
                                         },
                                     )
-                                }
+                                    //caso o dado procurado na fonte de verdade seja nulo ...
+//                                } ?: navController.popBackStack() //volta para a tela anterior
+                                    //nao pode ser usado em composição
+                                } ?: LaunchedEffect(Unit){navController.navigateUp()} //volta para a tela anterior porem possui integração com  deeplink
 
                             }
                             composable(AppDestination.Checkout.route) {
-                                CheckoutScreen(products = sampleProducts)
+                                CheckoutScreen(products = sampleProducts,
+                                onPopBackStack = {
+                                    navController.navigateUp()
+                                }
+                                    )
                             }
                         }
                     }
