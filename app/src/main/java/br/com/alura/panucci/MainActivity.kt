@@ -15,20 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import br.com.alura.panucci.navigation.AppDestination
-import br.com.alura.panucci.navigation.PanucciNavHost
-import br.com.alura.panucci.sampledata.bottomAppBarItems
-import br.com.alura.panucci.sampledata.sampleProducts
+import br.com.alura.panucci.navigation.*
+import br.com.alura.panucci.navigation.drinksRoute
+import br.com.alura.panucci.navigation.highlightsListRoute
 import br.com.alura.panucci.ui.components.BottomAppBarItem
 import br.com.alura.panucci.ui.components.PanucciBottomAppBar
 import br.com.alura.panucci.ui.screens.*
 import br.com.alura.panucci.ui.theme.PanucciTheme
-import java.math.BigDecimal
 
 class MainActivity : ComponentActivity() {
 
@@ -44,34 +39,34 @@ class MainActivity : ComponentActivity() {
             val backStackEntryState by navController.currentBackStackEntryAsState()
             val currentDestination = backStackEntryState?.destination
 
-
             PanucciTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
+                    val currentRoute = currentDestination?.route
+
                     var selectedItem by remember(currentDestination) {
 
-                        val item = currentDestination?.let {
-                            bottomAppBarItems.find { app ->
-                                it.route == app.destination.route
-                            }
-                        } ?: bottomAppBarItems.first()
-
+                        val item = when(currentRoute) {
+                            highlightsListRoute -> BottomAppBarItem.HighlightList
+                                menuRoute -> BottomAppBarItem.Menu
+                                drinksRoute -> BottomAppBarItem.Drinks
+                                else -> BottomAppBarItem.HighlightList
+                        }
                         mutableStateOf(item)
                     }
 
                     //verifica se o destino contem appBar
-                    val containsInBottomAppBarItems = currentDestination?.let { destination ->
-                        bottomAppBarItems.find {
-                            it.destination.route == destination.route
-                        }
-                    } != null
+                    val containsInBottomAppBarItems = when(currentRoute){
+                        highlightsListRoute, menuRoute, drinksRoute -> true
+                        else -> false
+                    }
 
                     //verifica se os destinos contem FAB
                     val isShowFab = when (currentDestination?.route) {
-                        AppDestination.Menu.route,
-                        AppDestination.Drinks.route -> true
+                        menuRoute, drinksRoute -> true
                         else -> false
                     }
 
@@ -80,14 +75,14 @@ class MainActivity : ComponentActivity() {
                         onBottomAppBarItemSelectedChange = {
                             selectedItem = it
                             //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
-                            val route = it.destination.route
+                            val route = it.destination
                             navController.navigate(route) {
                                 launchSingleTop = true //nao recarrega a tela
                                 popUpTo(route) // remove a screen da stack
                             }
                         },
                         onFabClick = {
-                            navController.navigate(AppDestination.Checkout.route)
+                            navController.navigateToCheckout()
                         },
                         isShowTopBar = containsInBottomAppBarItems,
                         isShowBottomBar = containsInBottomAppBarItems,
