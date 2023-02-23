@@ -8,9 +8,8 @@ import androidx.navigation.compose.NavHost
 fun PanucciNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = AppDestination.HighLight.route,
+        startDestination = highlightsListRoute,
     ) {
-
         //a navegacao serao composables injetados
         //dentro do slot de content configurado no APP
         highlightsListScreen(navController)
