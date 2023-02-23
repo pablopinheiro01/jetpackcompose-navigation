@@ -21,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import br.com.alura.panucci.navigation.AppDestination
+import br.com.alura.panucci.navigation.PanucciNavHost
 import br.com.alura.panucci.sampledata.bottomAppBarItems
 import br.com.alura.panucci.sampledata.sampleProducts
 import br.com.alura.panucci.ui.components.BottomAppBarItem
@@ -93,92 +94,7 @@ class MainActivity : ComponentActivity() {
                         isShowFab = isShowFab
 
                     ) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = AppDestination.HighLight.route,
-                        ) {
-
-                            //a navegacao serao composables injetados
-                            //dentro do slot de content configurado no APP
-                            composable(AppDestination.HighLight.route) {
-                                HighlightsListScreen(
-                                    products = sampleProducts,
-                                    onNavigateToCheckout = {
-                                        navController.navigate(AppDestination.Checkout.route)
-                                    },
-                                    onNavigateToDetails = { productReceived ->
-                                        val promoCode = "ALURA"
-                                        navController.navigate("${AppDestination.ProductDetails.route}/${productReceived.id}?promoCode=${promoCode}")
-                                    }
-                                )
-                            }
-                            composable(AppDestination.Menu.route) {
-                                MenuListScreen(
-                                    products = sampleProducts,
-                                    onNavigateToDetails = { productReceived ->
-                                        navController.navigate("${AppDestination.ProductDetails.route}/${productReceived.id}")
-                                    },
-
-                                    )
-                            }
-                            composable(AppDestination.Drinks.route) {
-                                DrinksListScreen(
-                                    products = sampleProducts,
-                                    onNavigateToDetails = { productReceived ->
-                                        navController.navigate("${AppDestination.ProductDetails.route}/${productReceived.id}")
-                                    },
-                                )
-                            }
-                            composable(
-                                "${AppDestination.ProductDetails.route}/{productId}?promoCode={promoCode}",
-                                arguments = listOf(
-                                    navArgument("promoCode") { nullable = true }
-                                ),
-                            ) { backStackEntry ->
-                                val id = backStackEntry.arguments?.getString("productId")
-                                Log.i("MainActivity", "onCreate: id recebido ${id}")
-                                val promoCode = backStackEntry.arguments?.getString("promoCode")
-
-                                sampleProducts.find {
-                                    it.id == id
-                                }?.let { product ->
-
-                                    val discount = when (promoCode) {
-                                        "ALURA" -> BigDecimal("0.1")
-                                        else -> BigDecimal.ZERO
-                                    }
-                                    val currentPrice = product.price
-
-                                    Log.i("MainActivity", "onCreate: product ${product} ")
-                                    Log.i(
-                                        "MainActivity",
-                                        "onCreate: Calculo de desconto: ${currentPrice - (currentPrice * discount)} "
-                                    )
-                                    ProductDetailsScreen(
-                                        product = product.copy(price = currentPrice - (currentPrice * discount)),
-                                        onNavigateToCheckout = {
-                                            navController.navigate(AppDestination.Checkout.route)
-                                        },
-                                    )
-                                    //caso o dado procurado na fonte de verdade seja nulo ...
-//                                } ?: navController.popBackStack() //volta para a tela anterior
-                                    //nao pode ser usado em composição
-                                }
-                                    ?: LaunchedEffect(Unit) { navController.navigateUp() } //volta para a tela anterior porem possui integração com  deeplink
-
-                            }
-                            composable(AppDestination.Checkout.route) {
-                                CheckoutScreen(products = sampleProducts,
-                                    onPopBackStack = {
-                                        Log.i("MainActivity", "onCreate: onPopBackStack called")
-//                                        navController.navigateUp()
-                                        navController.navigate(AppDestination.HighLight.route){
-                                            popUpTo(AppDestination.Checkout.route)
-                                        }
-                                    }
-                                )
-                            }
-                        }
+                        PanucciNavHost(navController = navController)
                     }
                 }
             }
