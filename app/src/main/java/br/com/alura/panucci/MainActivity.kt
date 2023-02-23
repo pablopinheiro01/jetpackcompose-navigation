@@ -15,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navOptions
 import br.com.alura.panucci.navigation.*
 import br.com.alura.panucci.ui.components.BottomAppBarItem
 import br.com.alura.panucci.ui.components.PanucciBottomAppBar
@@ -48,17 +50,17 @@ class MainActivity : ComponentActivity() {
 
                     var selectedItem by remember(currentDestination) {
 
-                        val item = when(currentRoute) {
+                        val item = when (currentRoute) {
                             highlightsListRoute -> BottomAppBarItem.HighlightList
-                                menuRoute -> BottomAppBarItem.Menu
-                                drinksRoute -> BottomAppBarItem.Drinks
-                                else -> BottomAppBarItem.HighlightList
+                            menuRoute -> BottomAppBarItem.Menu
+                            drinksRoute -> BottomAppBarItem.Drinks
+                            else -> BottomAppBarItem.HighlightList
                         }
                         mutableStateOf(item)
                     }
 
                     //verifica se o destino contem appBar
-                    val containsInBottomAppBarItems = when(currentRoute){
+                    val containsInBottomAppBarItems = when (currentRoute) {
                         highlightsListRoute, menuRoute, drinksRoute -> true
                         else -> false
                     }
@@ -73,11 +75,32 @@ class MainActivity : ComponentActivity() {
                         bottomAppBarItemSelected = selectedItem,
                         onBottomAppBarItemSelectedChange = { item ->
 
-                            when(item){
-                                BottomAppBarItem.Drinks -> navController.navigateToDrinks()
-                                BottomAppBarItem.HighlightList -> navController.navigateToHighLightsList()
-                                BottomAppBarItem.Menu -> navController.navigateToMenu()
+                            //monta o pair com a rota e a navegação
+                            val (route, navigation) = when (item) {
+                                BottomAppBarItem.Drinks ->
+                                    Pair(
+                                        drinksRoute,
+                                        navController::navigateToDrinks //referencia para a rota
+                                    )
+                                BottomAppBarItem.HighlightList ->
+                                    Pair(
+                                        highlightsListRoute,
+                                        navController::navigateToHighLightsList
+                                    )
+                                BottomAppBarItem.Menu ->
+                                    Pair(
+                                        menuRoute,
+                                        navController::navigateToMenu
+                                    )
                             }
+
+                            //monta o navOptions inserindo a val route definida acima no Pair
+                            val navOptions = navOptions {
+                                launchSingleTop = true
+                                popUpTo(route)
+                            }
+                            //navega na rota passando os options configurados acima
+                            navigation(navOptions)
 
 //                            selectedItem = it
 //                            //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
