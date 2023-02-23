@@ -18,10 +18,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import br.com.alura.panucci.navigation.*
-import br.com.alura.panucci.navigation.drinksRoute
-import br.com.alura.panucci.navigation.highlightsListRoute
 import br.com.alura.panucci.ui.components.BottomAppBarItem
 import br.com.alura.panucci.ui.components.PanucciBottomAppBar
+import br.com.alura.panucci.ui.components.bottomAppBarItems
 import br.com.alura.panucci.ui.screens.*
 import br.com.alura.panucci.ui.theme.PanucciTheme
 
@@ -72,14 +71,21 @@ class MainActivity : ComponentActivity() {
 
                     PanucciApp(
                         bottomAppBarItemSelected = selectedItem,
-                        onBottomAppBarItemSelectedChange = {
-                            selectedItem = it
-                            //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
-                            val route = it.destination
-                            navController.navigate(route) {
-                                launchSingleTop = true //nao recarrega a tela
-                                popUpTo(route) // remove a screen da stack
+                        onBottomAppBarItemSelectedChange = { item ->
+
+                            when(item){
+                                BottomAppBarItem.Drinks -> navController.navigateToDrinks()
+                                BottomAppBarItem.HighlightList -> navController.navigateToHighLightsList()
+                                BottomAppBarItem.Menu -> navController.navigateToMenu()
                             }
+
+//                            selectedItem = it
+//                            //utiliza um evento interno do composable que utiliza uma API de effect por baixo dos panos
+//                            val route = it.destination
+//                            navController.navigate(route) {
+//                                launchSingleTop = true //nao recarrega a tela
+//                                popUpTo(route) // remove a screen da stack
+//                            }
                         },
                         onFabClick = {
                             navController.navigateToCheckout()
