@@ -19,48 +19,50 @@ class ProductDetailsViewModel(
     private val dao: ProductDao = ProductDao()
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProductDetailsUiState())
+    private val _uiState = MutableStateFlow<ProductDetailsUiState>(
+        ProductDetailsUiState.Loading
+    )
     val uiState = _uiState.asStateFlow()
 
     fun findProductById(id: String) {
+        _uiState.update { ProductDetailsUiState.Loading }
         viewModelScope.launch {
             //teste de timeout na tela
             val timeInMillis = Random.nextLong(500, 4000)
             delay(timeInMillis)
-            dao.findById(id)?.let { product ->
-                _uiState.update {
-                    it.copy(product = product)
-                }
-            }
+            val dataState = dao.findById(id)?.let { product ->
+               ProductDetailsUiState.Success( product = product)
+            } ?: ProductDetailsUiState.Failure
+            _uiState.update { dataState }
         }
     }
 
-    fun applyDiscountPromotionalCode(promoCode: String?) {
-        _uiState.update { state ->
-
-            val discount = when (promoCode) {
-                "{ALURA}" -> BigDecimal("0.1")
-                else -> BigDecimal.ZERO
-            }
-            val value = state.product?.price?.run {
-                this.minus(this.multiply(discount))
-            }
-
-            Log.i(TAG, "applyDiscountPromotionalCode: antes ${_uiState.value}")
-
-            Log.i(TAG, "applyDiscountPromotionalCode: ${promoCode} value: ${value}")
-
-            val newState = state.copy(product = value?.let { newValue ->
-                Log.i(TAG, "applyDiscountPromotionalCode: newValue: ${newValue}")
-                state.product.copy(price = newValue)
-            })
-
-            newState
-        }
-
-        Log.i(TAG, "applyDiscountPromotionalCode: depois ${_uiState.value}")
-
-    }
+//    fun applyDiscountPromotionalCode(promoCode: String?) {
+//        _uiState.update { state ->
+//
+//            val discount = when (promoCode) {
+//                "{ALURA}" -> BigDecimal("0.1")
+//                else -> BigDecimal.ZERO
+//            }
+//            val value = state.product?.price?.run {
+//                this.minus(this.multiply(discount))
+//            }
+//
+//            Log.i(TAG, "applyDiscountPromotionalCode: antes ${_uiState.value}")
+//
+//            Log.i(TAG, "applyDiscountPromotionalCode: ${promoCode} value: ${value}")
+//
+//            val newState = state.copy(product = value?.let { newValue ->
+//                Log.i(TAG, "applyDiscountPromotionalCode: newValue: ${newValue}")
+//                state.product.copy(price = newValue)
+//            })
+//
+//            newState
+//        }
+//
+//        Log.i(TAG, "applyDiscountPromotionalCode: depois ${_uiState.value}")
+//
+//    }
 
     companion object {
         const val TAG = "ProductDetailsViewModel"
