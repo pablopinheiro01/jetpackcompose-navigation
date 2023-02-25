@@ -28,7 +28,7 @@ fun NavGraphBuilder.productDetailsScreen(navController: NavHostController) {
 
             LaunchedEffect(Unit) {
                 viewModel.findProductById(id)
-//                viewModel.applyDiscountPromotionalCode(promoCode)
+                viewModel.applyDiscountPromotionalCode(promoCode)
             }
 
             ProductDetailsScreen(

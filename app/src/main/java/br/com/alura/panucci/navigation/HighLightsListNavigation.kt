@@ -27,8 +27,8 @@ fun NavGraphBuilder.highlightsListScreen(navController: NavHostController) {
             },
             onNavigateToDetails = { productReceived ->
                 val promoCode = "ALURA"
-//                navController.navigateToProductDetails(productReceived.id, promoCode)
-                navController.navigateToProductDetails("teste de falha", promoCode)
+                navController.navigateToProductDetails(productReceived.id, promoCode)
+//                navController.navigateToProductDetails("teste de falha", promoCode)
             }
         )
     }

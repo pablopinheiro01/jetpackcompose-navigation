@@ -2,6 +2,7 @@ package br.com.alura.panucci.ui.viewmodels
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.alura.panucci.dao.ProductDao
@@ -31,38 +32,48 @@ class ProductDetailsViewModel(
             val timeInMillis = Random.nextLong(500, 4000)
             delay(timeInMillis)
             val dataState = dao.findById(id)?.let { product ->
-               ProductDetailsUiState.Success( product = product)
-            } ?: ProductDetailsUiState.Failure
+                ProductDetailsUiState.Success(product = product)
+            }?: ProductDetailsUiState.Failure
+
             _uiState.update { dataState }
         }
     }
 
-//    fun applyDiscountPromotionalCode(promoCode: String?) {
-//        _uiState.update { state ->
-//
-//            val discount = when (promoCode) {
-//                "{ALURA}" -> BigDecimal("0.1")
-//                else -> BigDecimal.ZERO
-//            }
-//            val value = state.product?.price?.run {
-//                this.minus(this.multiply(discount))
-//            }
-//
-//            Log.i(TAG, "applyDiscountPromotionalCode: antes ${_uiState.value}")
-//
-//            Log.i(TAG, "applyDiscountPromotionalCode: ${promoCode} value: ${value}")
-//
-//            val newState = state.copy(product = value?.let { newValue ->
-//                Log.i(TAG, "applyDiscountPromotionalCode: newValue: ${newValue}")
-//                state.product.copy(price = newValue)
-//            })
-//
-//            newState
-//        }
-//
-//        Log.i(TAG, "applyDiscountPromotionalCode: depois ${_uiState.value}")
-//
-//    }
+    fun applyDiscountPromotionalCode(promoCode: String?) {
+        viewModelScope.launch {
+            _uiState.update { state ->
+                when (state) {
+                    is ProductDetailsUiState.Success -> {
+                        val discount = when (promoCode) {
+                            "{ALURA}" -> BigDecimal("0.1")
+                            else -> BigDecimal.ZERO
+                        }
+                        val value = state.product?.price?.run {
+                            this.minus(this.multiply(discount))
+                        }
+
+                        Log.i(TAG, "applyDiscountPromotionalCode: antes ${_uiState.value}")
+
+                        Log.i(TAG, "applyDiscountPromotionalCode: ${promoCode} value: ${value}")
+
+                        val product = value?.let { newValue ->
+                            state.product.copy(price = newValue)
+                        } ?: state.product
+
+                        ProductDetailsUiState.Success(product)
+
+                    }
+                    else -> {
+                        ProductDetailsUiState.Loading
+                    }
+                }
+            }
+
+        }
+
+        Log.i(TAG, "applyDiscountPromotionalCode: depois ${_uiState.value}")
+
+    }
 
     companion object {
         const val TAG = "ProductDetailsViewModel"
