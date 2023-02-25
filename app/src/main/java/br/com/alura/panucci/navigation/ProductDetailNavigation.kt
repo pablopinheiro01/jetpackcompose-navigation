@@ -1,15 +1,16 @@
 package br.com.alura.panucci.navigation
 
-import android.util.Log
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import br.com.alura.panucci.sampledata.sampleProducts
 import br.com.alura.panucci.ui.screens.ProductDetailsScreen
-import java.math.BigDecimal
+import br.com.alura.panucci.ui.viewmodels.ProductDetailsViewModel
 
 private const val productDetailsRoute = "ProductDetails"
 private const val productIdArgument = "productId"
@@ -21,40 +22,30 @@ fun NavGraphBuilder.productDetailsScreen(navController: NavHostController) {
             navArgument("promoCode") { nullable = true }
         ),
     ) { backStackEntry ->
-        val id = backStackEntry.arguments?.getString("$productIdArgument")
-        Log.i("MainActivity", "onCreate: id recebido ${id}")
-        val promoCode = backStackEntry.arguments?.getString("$cumpomArgument")
 
-        sampleProducts.find {
-            it.id == id
-        }?.let { product ->
+        val promoCode = backStackEntry.arguments?.getString(cumpomArgument)
 
-            val discount = when (promoCode) {
-                "ALURA" -> BigDecimal("0.1")
-                else -> BigDecimal.ZERO
+        backStackEntry.arguments?.getString(productIdArgument)?.let { id ->
+            val viewModel: ProductDetailsViewModel = viewModel()
+            val uiState by viewModel.uiState.collectAsState()
+
+            LaunchedEffect(Unit) {
+                viewModel.findProductById(id)
+                viewModel.applyDiscountPromotionalCode(promoCode)
             }
-            val currentPrice = product.price
 
-            Log.i("MainActivity", "onCreate: product ${product} ")
-            Log.i(
-                "MainActivity",
-                "onCreate: Calculo de desconto: ${currentPrice - (currentPrice * discount)} "
-            )
             ProductDetailsScreen(
-                product = product.copy(price = currentPrice - (currentPrice * discount)),
+                uiState = uiState,
                 onNavigateToCheckout = {
                     navController.navigateToCheckout()
                 },
             )
-            //caso o dado procurado na fonte de verdade seja nulo ...
-//                                } ?: navController.popBackStack() //volta para a tela anterior
-            //nao pode ser usado em composição
         }
             ?: LaunchedEffect(Unit) { navController.navigateUp() } //volta para a tela anterior porem possui integração com  deeplink
 
     }
 }
 
-fun NavController.navigateToProductDetails(id: String, cupom: String = "promoCode"){
+fun NavController.navigateToProductDetails(id: String, cupom: String = "promoCode") {
     navigate("${productDetailsRoute}/$id?$cumpomArgument={$cupom}")
 }
